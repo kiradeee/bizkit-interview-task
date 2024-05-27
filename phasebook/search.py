@@ -8,23 +8,33 @@ bp = Blueprint("search", __name__, url_prefix="/search")
 
 @bp.route("")
 def search():
-    return search_users(request.args.to_dict()), 200
+    id = request.args.get('id', type=str)
+    name = request.args.get('name', type=str)
+    age = request.args.get('age', type=int)
+    occupation = request.args.get('occupation', type=str)
+    
+    result = search_users(USERS, id=id, name=name, age=age, occupation=occupation)
 
+    return result
 
-def search_users(args):
-    """Search users database
+def search_users(users, id=None, name=None, age=None, occupation=None):
+    result = []
 
-    Parameters:
-        args: a dictionary containing the following search parameters:
-            id: string
-            name: string
-            age: string
-            occupation: string
+    if id is None and name is None and age is None and occupation is None:
+        return users
 
-    Returns:
-        a list of users that match the search parameters
-    """
+    if id is not None:
+        result += [user for user in users if user['id'] == id]
 
-    # Implement search here!
+    if name is not None:
+        result += [user for user in users if name.lower() in user['name'].lower()]
 
-    return USERS
+    if age is not None:
+        result += [user for user in users if age - 1 <= user['age'] <= age + 1]
+
+    if occupation is not None:
+        result += [user for user in users if occupation.lower() in user['occupation'].lower()]
+
+    result = [dict(t) for t in {tuple(d.items()) for d in result}]
+
+    return result
